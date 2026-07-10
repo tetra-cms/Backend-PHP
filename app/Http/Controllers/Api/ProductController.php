@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Product\CreateProductRequest;
 use App\Http\Requests\Product\UpdateProductRequest;
@@ -9,7 +10,6 @@ use App\Http\Resources\ProductResource;
 use App\Models\Product;
 use App\Services\ProductService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class ProductController extends Controller
 {
@@ -20,11 +20,15 @@ class ProductController extends Controller
     /**
      * GET /api/products
      */
-    public function index(): AnonymousResourceCollection
+    public function index(Request $request)
     {
-        return ProductResource::collection(
-            $this->productService->all()
-        );
+        $result = $this->productService->all($request);
+
+        if ($result instanceof JsonResponse) {
+            return $result;
+        }
+
+        return response()->json($result);
     }
 
     /**

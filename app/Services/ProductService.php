@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
+use Illuminate\Http\Request;
 use App\Models\Product;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 
 class ProductService
@@ -11,12 +11,45 @@ class ProductService
     /**
      * Получить все товары.
      */
-    public function all(): Collection
+    public function all(Request $request)
     {
-        return Product::query()
-            ->with('category')
-            ->orderBy('id')
-            ->get();
+        $query = Product::with('category');
+
+        if ($request->filled('search')) {
+
+            $search = $request->string('search');
+
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+
+        if (
+            !$request->has('page') &&
+            !$request->has('perPage') &&
+            !$request->has('search')
+        ) {
+            return $query
+                ->orderByDesc('id')
+                ->get();
+        }
+
+        $products = $query
+            ->orderByDesc('id')
+            ->paginate(
+                $request->integer('perPage', 15)
+            );
+
+        return response()->json([
+            'data' => $products->items(),
+            'pagination' => [
+                'page' => $products->currentPage(),
+                'perPage' => $products->perPage(),
+                'total' => $products->total(),
+                'lastPage' => $products->lastPage(),
+            ],
+        ]);
     }
 
     /**

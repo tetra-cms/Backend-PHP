@@ -20,10 +20,10 @@ class UserController extends Controller
     /**
      * GET /api/admin/users
      */
-    public function index(): AnonymousResourceCollection
+    public function index(Request $request)
     {
-        return UserResource::collection(
-            $this->userService->all()
+        return response()->json(
+            $this->userService->all($request)
         );
     }
 

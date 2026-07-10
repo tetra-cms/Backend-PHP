@@ -3,7 +3,7 @@
 namespace App\Services;
 
 use App\Models\User;
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class UserService
@@ -11,11 +11,44 @@ class UserService
     /**
      * Получить всех пользователей.
      */
-    public function all(): Collection
+    public function all(Request $request): Collection|array
     {
-        return User::query()
-            ->orderBy('id')
-            ->get();
+        $query = User::query();
+
+        if ($request->filled('search')) {
+
+            $search = trim($request->string('search'));
+
+            $query->where(function ($q) use ($search) {
+                $q->where('username', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%");
+            });
+
+        }
+
+        $query->orderBy('id');
+
+        if (
+            !$request->has('page') &&
+            !$request->has('perPage') &&
+            !$request->has('search')
+        ) {
+            return $query->get();
+        }
+
+        $users = $query->paginate(
+            $request->integer('perPage', 15)
+        );
+
+        return [
+            'data' => $users->items(),
+            'pagination' => [
+                'page' => $users->currentPage(),
+                'perPage' => $users->perPage(),
+                'total' => $users->total(),
+                'lastPage' => $users->lastPage(),
+            ],
+        ];
     }
 
     /**
