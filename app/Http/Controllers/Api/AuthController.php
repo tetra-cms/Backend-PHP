@@ -56,7 +56,7 @@ class AuthController extends Controller
     public function refresh(RefreshRequest $request): JsonResponse
     {
         $tokens = $this->authService->refresh(
-            $request->validated('refresh_token'),
+            $request->validated('refreshToken'),
         );
 
         return response()->json($tokens);
@@ -68,7 +68,7 @@ class AuthController extends Controller
     public function logout(RefreshRequest $request): JsonResponse
     {
         $this->authService->logout(
-            $request->validated('refresh_token'),
+            $request->validated('refreshToken'),
         );
 
         return response()->json([], 204);

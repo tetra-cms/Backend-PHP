@@ -4,8 +4,6 @@ namespace App\Http\Middleware;
 
 use App\Models\User;
 use Firebase\JWT\ExpiredException;
-use Firebase\JWT\JWT;
-use Firebase\JWT\Key;
 use Closure;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -23,10 +21,8 @@ class JwtMiddleware
         }
 
         try {
-            $payload = JWT::decode(
-                $token,
-                new Key(config('app.jwt_secret'), 'HS256')
-            );
+            $payload = app(\App\Services\JwtService::class)
+                ->validateAccessToken($token);
 
             $user = User::find($payload->sub);
 
@@ -42,10 +38,12 @@ class JwtMiddleware
 
             return $this->unauthorized('Access token expired');
 
-        } catch (Throwable) {
+        } catch (Throwable $e) {
 
-            return $this->unauthorized('Invalid access token');
-
+            return response()->json([
+                'message' => $e->getMessage(),
+                'class' => get_class($e),
+            ], 500);
         }
     }
 

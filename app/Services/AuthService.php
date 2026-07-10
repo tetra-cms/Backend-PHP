@@ -59,8 +59,8 @@ class AuthService
             ]);
 
             return [
-                'access_token' => $accessToken,
-                'refresh_token' => $refreshToken,
+                'accessToken' => $accessToken,
+                'refreshToken' => $refreshToken,
             ];
         });
     }
@@ -107,8 +107,8 @@ class AuthService
             ]);
 
             return [
-                'access_token' => $accessToken,
-                'refresh_token' => $refreshToken,
+                'accessToken' => $accessToken,
+                'refreshToken' => $refreshToken,
             ];
         });
     }
@@ -171,8 +171,8 @@ class AuthService
             ]);
 
             return [
-                'access_token' => $accessToken,
-                'refresh_token' => $newRefresh,
+                'accessToken' => $accessToken,
+                'refreshToken' => $newRefresh,
             ];
         });
     }
