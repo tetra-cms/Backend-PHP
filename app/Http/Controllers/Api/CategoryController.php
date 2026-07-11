@@ -9,7 +9,7 @@ use App\Http\Resources\CategoryResource;
 use App\Models\Category;
 use App\Services\CategoryService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Http\Request;
 
 class CategoryController extends Controller
 {
@@ -20,10 +20,10 @@ class CategoryController extends Controller
     /**
      * GET /api/categories
      */
-    public function index(): AnonymousResourceCollection
+    public function index(Request $request): JsonResponse
     {
-        return CategoryResource::collection(
-            $this->categoryService->all()
+        return response()->json(
+            $this->categoryService->all($request)
         );
     }
 

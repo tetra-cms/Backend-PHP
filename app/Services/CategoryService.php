@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Illuminate\Http\Request;
 use App\Models\Category;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
@@ -11,11 +12,42 @@ class CategoryService
     /**
      * Получить все категории.
      */
-    public function all(): Collection
+    public function all(Request $request): Collection | array
     {
-        return Category::query()
-            ->orderBy('id')
-            ->get();
+        $query = Category::query();
+
+        if ($request->filled('search')) {
+            $search = trim($request->string('search'));
+
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('title', 'like', "%{$search}%");
+            });
+        }
+
+        $query->orderBy('id');
+
+        if (
+            !$request->has('page') &&
+            !$request->has('perPage') &&
+            !$request->has('search')
+        ) {
+            return $query->get();
+        }
+
+        $categories = $query->paginate(
+            $request->integer('perPage', 15)
+        );
+
+        return [
+            'data' => $categories->items(),
+            'pagination' => [
+                'page' => $categories->currentPage(),
+                'perPage' => $categories->perPage(),
+                'total' => $categories->total(),
+                'lastPage' => $categories->lastPage(),
+            ],
+        ];
     }
 
     /**
