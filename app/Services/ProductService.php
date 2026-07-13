@@ -34,9 +34,7 @@ class ProductService
 
         if (
             !$request->has('page') &&
-            !$request->has('perPage') ||
-            !$request->has('search') ||
-            !$request->has('category_id')
+            !$request->has('perPage')
         ) {
             return $query
                 ->orderByDesc('id')
