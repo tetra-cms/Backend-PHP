@@ -25,10 +25,18 @@ class ProductService
             });
         }
 
+        if ($request->filled('category_id')) {
+            $query->where(
+                'category_id',
+                $request->integer('category_id')
+            );
+        }
+
         if (
             !$request->has('page') &&
-            !$request->has('perPage') &&
-            !$request->has('search')
+            !$request->has('perPage') ||
+            !$request->has('search') ||
+            !$request->has('category_id')
         ) {
             return $query
                 ->orderByDesc('id')
@@ -68,7 +76,6 @@ class ProductService
         return DB::transaction(function () use ($data) {
 
             $product = Product::create([
-                'image_url' => $data['image_url'],
                 'name' => $data['name'],
                 'description' => $data['description'],
                 'price' => $data['price'],
@@ -89,7 +96,6 @@ class ProductService
         return DB::transaction(function () use ($product, $data) {
 
             $product->update([
-                'image_url' => $data['image_url'],
                 'name' => $data['name'],
                 'description' => $data['description'],
                 'price' => $data['price'],
