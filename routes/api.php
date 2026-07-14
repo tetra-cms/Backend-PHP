@@ -5,6 +5,8 @@ use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\ClientController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\ContentController;
+use App\Http\Controllers\Api\MailConfigurationController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
@@ -17,6 +19,13 @@ Route::get('/products', [ProductController::class, 'index']);
 Route::get('/products/{product}', [ProductController::class, 'show']);
 Route::get('/categories', [CategoryController::class, 'index']);
 Route::get('/categories/{category}', [CategoryController::class, 'show']);
+
+Route::prefix('content')->group(function () {
+    Route::get('/', [ContentController::class, 'index']);
+    Route::get('/id/{id}', [ContentController::class, 'getById']);
+    Route::get('/{route}', [ContentController::class, 'show']);
+    Route::get('/route/get', [ContentController::class, 'route']);
+});
 
 Route::middleware('jwt')->group(function () {
     Route::prefix('auth')->group(function () {
@@ -42,6 +51,15 @@ Route::middleware('jwt')->group(function () {
         Route::delete('/categories/{category}', [CategoryController::class, 'destroy']);
 
         Route::delete('/products/{product}', [ProductController::class, 'destroy']);
+
+        Route::get('/mail/configuration', [MailConfigurationController::class, 'show']);
+        Route::put('/mail/configuration', [MailConfigurationController::class, 'update']);
+
+        Route::prefix('content')->group(function () {
+            Route::post('/', [ContentController::class, 'store']);
+            Route::put('/{id}', [ContentController::class, 'update']);
+            Route::delete('/{id}', [ContentController::class, 'destroy']);
+        });
     });
 
 });
