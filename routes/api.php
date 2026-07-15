@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\ClientController;
 use App\Http\Controllers\Api\ProductController;
@@ -35,9 +36,17 @@ Route::middleware('jwt')->group(function () {
 
     Route::apiResource('clients', ClientController::class);
 
+    Route::get('/orders', [OrderController::class, 'index']);
+    Route::get('/orders/my', [OrderController::class,'my']);
+    Route::get('/orders/{id}', [OrderController::class, 'show']);
+
     Route::middleware('employee')->prefix('employee')->group(function () {
         Route::post('/products', [ProductController::class, 'store']);
         Route::put('/products/{product}', [ProductController::class, 'update']);
+
+        Route::post('/orders', [OrderController::class, 'store']);
+        Route::put('/orders/{id}', [OrderController::class, 'update']);
+        Route::delete('/orders/{id}', [OrderController::class, 'destroy']);
     });
 
     Route::middleware('admin')->prefix('admin')->group(function () {
@@ -61,5 +70,4 @@ Route::middleware('jwt')->group(function () {
             Route::delete('/{id}', [ContentController::class, 'destroy']);
         });
     });
-
 });
