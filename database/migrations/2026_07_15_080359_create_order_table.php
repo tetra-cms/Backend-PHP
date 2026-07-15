@@ -1,6 +1,8 @@
 <?php
 
+use App\Enums\DeliveryTypes;
 use App\Enums\OrderStatus;
+use App\Enums\PaymentTypes;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -34,7 +36,27 @@ return new class extends Migration
                     'value'
                 )
             )->default(
-                OrderStatus::PendingPayment->value
+                OrderStatus::InProgress->value
+            );
+
+            $table->enum(
+                'delivery_type',
+                array_column(
+                    DeliveryTypes::cases(),
+                    'value'
+                )
+            )->default(
+                DeliveryTypes::pickup->value
+            );
+
+            $table->enum(
+                'payment_type',
+                array_column(
+                    PaymentTypes::cases(),
+                    'value'
+                )
+            )->default(
+                PaymentTypes::cash->value
             );
 
             $table->timestamps();

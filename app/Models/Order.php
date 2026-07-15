@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use App\Enums\DeliveryTypes;
 use App\Enums\OrderStatus;
+use App\Enums\PaymentTypes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -17,12 +19,16 @@ class Order extends Model
         'client_id',
         'comment',
         'status',
+        'payment_type',
+        'delivery_type',
     ];
 
     protected function casts(): array
     {
         return [
             'status' => OrderStatus::class,
+            'payment_type' => PaymentTypes::class,
+            'delivery_type' => DeliveryTypes::class,
         ];
     }
 

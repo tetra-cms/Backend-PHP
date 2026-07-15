@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\OrderStatus;
 use App\Http\Requests\CreateOrderRequest;
 use App\Http\Requests\UpdateOrderRequest;
 use App\Models\Order;
@@ -154,7 +155,9 @@ class OrderService
                 'user_id' => $userId,
                 'client_id' => $request->client_id,
                 'comment' => $request->comment,
-                'status' => $request->status,
+                'payment_type' => $request->payment_type,
+                'delivery_type' => $request->delivery_type,
+                'status' => OrderStatus::InProgress,
             ]);
 
             foreach ($request->positions as $position) {
@@ -197,6 +200,8 @@ class OrderService
             $order->update([
                 'client_id' => $request->client_id,
                 'comment' => $request->comment,
+                'payment_type' => $request->payment_type,
+                'delivery_type' => $request->delivery_type,
                 'status' => $request->status,
             ]);
 
