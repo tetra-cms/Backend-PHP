@@ -3,29 +3,35 @@
 namespace App\Services;
 
 use App\Enums\OrderStatus;
-use App\Http\Requests\CreateOrderRequest;
-use App\Http\Requests\UpdateOrderRequest;
+use App\Enums\Role;
+use App\Models\Client;
 use App\Models\Order;
 use App\Models\OrderPosition;
 use App\Models\Product;
-use Illuminate\Http\Request;
+use App\Models\User;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
+use DomainException;
 
 class OrderService
 {
     /**
-     * Получить список заказов.
+     * Получить все заказы пользователя.
      */
-    public function all(Request $request)
+    public function all(User $user, array $filters = []): Collection|LengthAwarePaginator
     {
-        $query = Order::with([
-            'client',
-            'user',
-            'positions.product',
-        ]);
+        $query = Order::query()
+            ->with([
+                'client',
+                'user',
+                'positions.product',
+            ]);
 
-        if ($request->filled('search')) {
-            $search = $request->string('search');
+        if (!empty($filters['search'])) {
+            $search = $filters['search'];
+
             $query->where(function ($q) use ($search) {
                 $q->where('comment', 'like', "%{$search}%")
                     ->orWhereHas('client', function ($client) use ($search) {
@@ -35,136 +41,93 @@ class OrderService
             });
         }
 
-        if ($request->filled('status')) {
-            $query->where(
-                'status',
-                $request->string('status')
-            );
+        if (!empty($filters['status'])) {
+            $query->where('status', $filters['status']);
         }
 
-        if ($request->filled('client_id')) {
-            $query->where(
-                'client_id',
-                $request->integer('client_id')
-            );
+        if (!empty($filters['client_id'])) {
+            $query->where('client_id', $filters['client_id']);
         }
 
-        if ($request->filled('user_id')) {
-            $query->where(
-                'user_id',
-                $request->integer('user_id')
-            );
+        if (!empty($filters['perPage'])) {
+            return $query
+                ->latest()
+                ->paginate((int) $filters['perPage']);
         }
 
         if (
-            !$request->has('page') &&
-            !$request->has('perPage')
+            $user->role !== Role::ADMIN &&
+            $user->role !== Role::EMPLOYEE
         ) {
-            return $query
-                ->latest()
-                ->get();
+            $query->where('user_id', $user->id);
         }
 
-        $orders = $query
+        return $query
             ->latest()
-            ->paginate(
-                $request->integer('perPage', 15)
-            );
-
-        return response()->json([
-            'data' => $orders->items(),
-            'pagination' => [
-                'page' => $orders->currentPage(),
-                'perPage' => $orders->perPage(),
-                'total' => $orders->total(),
-                'lastPage' => $orders->lastPage(),
-            ],
-        ]);
+            ->get();
     }
 
     /**
      * Получить заказ.
      */
-    public function getById(int $id): ?Order
+    public function find(User $user, Order $order): Order
     {
-        return Order::with([
+        $this->ensureOwner($user, $order);
+
+        return $order->load([
             'client',
             'user',
             'positions.product',
-        ])->find($id);
+        ]);
     }
 
-    /**
-     * Получить список заказов пользователя
-     */
-    public function my(Request $request, int $userId)
-    {
-        $query = Order::with([
-            'client',
-            'user',
-            'positions.product',
-        ])->where('user_id', $userId);
+    public function positions(
+        User $user,
+        Order $order,
+        int $perPage = 15
+    ): LengthAwarePaginator {
+        $this->ensureOwner($user, $order);
 
-        if ($request->filled('status')) {
-            $query->where(
-                'status',
-                $request->string('status')
-            );
-        }
-
-        if (
-            !$request->has('page') &&
-            !$request->has('perPage')
-        ) {
-            return $query
-                ->latest()
-                ->get();
-        }
-
-        $orders = $query
-            ->latest()
-            ->paginate(
-                $request->integer('perPage', 15)
-            );
-
-        return response()->json([
-            'data' => $orders->items(),
-            'pagination' => [
-                'page' => $orders->currentPage(),
-                'perPage' => $orders->perPage(),
-                'total' => $orders->total(),
-                'lastPage' => $orders->lastPage(),
-            ],
-        ]);
+        return $order->positions()
+            ->with('product')
+            ->paginate($perPage);
     }
 
     /**
      * Создать заказ.
      */
-    public function create(
-        CreateOrderRequest $request,
-        int $userId
-    ): Order {
+    public function create(User $user, array $data): Order
+    {
+        $this->ensureClientOwner($user, $data['client_id']);
 
-        return DB::transaction(function () use (
-            $request,
-            $userId
-        ) {
+        return DB::transaction(function () use ($user, $data) {
 
             $order = Order::create([
-                'user_id' => $userId,
-                'client_id' => $request->client_id,
-                'comment' => $request->comment,
-                'payment_type' => $request->payment_type,
-                'delivery_type' => $request->delivery_type,
+                'user_id' => $user->id,
+                'client_id' => $data['client_id'],
+                'comment' => $data['comment'] ?? null,
+                'payment_type' => $data['payment_type'],
+                'delivery_type' => $data['delivery_type'],
                 'status' => OrderStatus::InProgress,
             ]);
 
-            foreach ($request->positions as $position) {
+            $products = Product::query()
+                ->whereIn(
+                    'id',
+                    collect($data['positions'])->pluck('product_id')
+                )
+                ->get()
+                ->keyBy('id');
 
-                $product = Product::findOrFail(
-                    $position['product_id']
-                );
+            foreach ($data['positions'] as $position) {
+
+                $product = $products->get($position['product_id']);
+
+                if (!$product) {
+                    throw new DomainException(
+                        'Товар не найден.'
+                    );
+                }
 
                 OrderPosition::create([
                     'order_id' => $order->id,
@@ -172,46 +135,61 @@ class OrderService
                     'price' => $product->price,
                     'quantity' => $position['quantity'],
                 ]);
-
             }
 
-            return $order->load([
+            return $order->fresh([
                 'client',
                 'user',
                 'positions.product',
             ]);
-
         });
     }
 
-        /**
+    /**
      * Обновить заказ.
      */
     public function update(
+        User $user,
         Order $order,
-        UpdateOrderRequest $request
+        array $data
     ): Order {
+
+        $this->ensureOwner($user, $order);
+
+        $this->ensureClientOwner($user, $data['client_id']);
 
         return DB::transaction(function () use (
             $order,
-            $request
+            $data
         ) {
 
             $order->update([
-                'client_id' => $request->client_id,
-                'comment' => $request->comment,
-                'payment_type' => $request->payment_type,
-                'delivery_type' => $request->delivery_type,
-                'status' => $request->status,
+                'client_id' => $data['client_id'],
+                'comment' => $data['comment'] ?? null,
+                'payment_type' => $data['payment_type'],
+                'delivery_type' => $data['delivery_type'],
+                'status' => $data['status'],
             ]);
 
             $order->positions()->delete();
 
-            foreach ($request->positions as $position) {
+            $products = Product::query()
+                ->whereIn(
+                    'id',
+                    collect($data['positions'])->pluck('product_id')
+                )
+                ->get()
+                ->keyBy('id');
 
-                $product = Product::findOrFail(
-                    $position['product_id']
-                );
+            foreach ($data['positions'] as $position) {
+
+                $product = $products->get($position['product_id']);
+
+                if (!$product) {
+                    throw new DomainException(
+                        'Товар не найден.'
+                    );
+                }
 
                 OrderPosition::create([
                     'order_id' => $order->id,
@@ -221,7 +199,7 @@ class OrderService
                 ]);
             }
 
-            return $order->load([
+            return $order->fresh([
                 'client',
                 'user',
                 'positions.product',
@@ -232,11 +210,61 @@ class OrderService
     /**
      * Удалить заказ.
      */
-    public function delete(Order $order): void
+    public function delete(User $user, Order $order): void
     {
+        $this->ensureOwner($user, $order);
+
         DB::transaction(function () use ($order) {
+
             $order->positions()->delete();
             $order->delete();
+
         });
+    }
+
+    /**
+     * Проверяет, принадлежит ли заказ пользователю.
+     *
+     * @throws AuthorizationException
+     */
+    private function ensureOwner(
+        User $user,
+        Order $order
+    ): void {
+        if (
+            $user->role === Role::EMPLOYEE ||
+            $user->role === Role::ADMIN
+        ) {
+            return;
+        }
+
+
+        if ($order->user_id !== $user->id) {
+            throw new AuthorizationException(
+                'Вы не можете управлять этим заказом.'
+            );
+        }
+    }
+
+    /**
+     * Проверяет, принадлежит ли клиент пользователю.
+     *
+     * @throws AuthorizationException
+     */
+    private function ensureClientOwner(
+        User $user,
+        int $clientId
+    ): void {
+
+        $exists = Client::query()
+            ->whereKey($clientId)
+            ->where('user_id', $user->id)
+            ->exists();
+
+        if (!$exists) {
+            throw new AuthorizationException(
+                'Вы не можете использовать этого клиента.'
+            );
+        }
     }
 }

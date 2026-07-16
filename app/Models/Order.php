@@ -62,7 +62,7 @@ class Order extends Model
     public function getTotalPriceAttribute(): int
     {
         return $this->positions->sum(function (OrderPosition $position) {
-            return $position->price * $position->quantity;
+            return $position->total_price;
         });
     }
 

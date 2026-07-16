@@ -1,8 +1,10 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Order;
 
 use App\Enums\OrderStatus;
+use App\Enums\DeliveryTypes;
+use App\Enums\PaymentTypes;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\Enum;
 
@@ -38,6 +40,16 @@ class CreateOrderRequest extends FormRequest
                 new Enum(OrderStatus::class),
             ],
 
+            'payment_type' => [
+                'nullable',
+                new Enum(PaymentTypes::class),
+            ],
+
+            'delivery_type' => [
+                'nullable',
+                new Enum(DeliveryTypes::class),
+            ],
+
             'positions' => [
                 'required',
                 'array',
@@ -65,7 +77,19 @@ class CreateOrderRequest extends FormRequest
     {
         if (!$this->has('status')) {
             $this->merge([
-                'status' => OrderStatus::PendingPayment->value,
+                'status' => OrderStatus::InProgress->value,
+            ]);
+        }
+
+        if (!$this->has('payment_type')) {
+            $this->merge([
+                'payment_type' => PaymentTypes::cash->value,
+            ]);
+        }
+
+        if (!$this->has('delivery_type')) {
+            $this->merge([
+                'delivery_type' => DeliveryTypes::pickup->value,
             ]);
         }
     }

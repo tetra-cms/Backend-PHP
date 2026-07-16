@@ -1,8 +1,10 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Order;
 
 use App\Enums\OrderStatus;
+use App\Enums\DeliveryTypes;
+use App\Enums\PaymentTypes;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\Enum;
 
@@ -36,6 +38,16 @@ class UpdateOrderRequest extends FormRequest
             'status' => [
                 'required',
                 new Enum(OrderStatus::class),
+            ],
+
+            'payment_type' => [
+                'nullable',
+                new Enum(DeliveryTypes::class),
+            ],
+
+            'delivery_type' => [
+                'nullable',
+                new Enum(PaymentTypes::class),
             ],
 
             'positions' => [

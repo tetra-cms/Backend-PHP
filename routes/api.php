@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\OrderController;
+use App\Http\Controllers\Api\OrderPositionController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\ClientController;
 use App\Http\Controllers\Api\ProductController;
@@ -36,10 +37,13 @@ Route::middleware('jwt')->group(function () {
 
     Route::apiResource('clients', ClientController::class);
 
-    Route::get('/orders', [OrderController::class, 'index']);
-    Route::get('/orders/my', [OrderController::class,'my']);
-    Route::get('/orders/{id}', [OrderController::class, 'show']);
-    Route::post('/orders', [OrderController::class, 'store']);
+    Route::prefix('orders')->group(function () {
+        Route::get('/', [OrderController::class, 'index']);
+        Route::get('/my', [OrderController::class,'my']);
+        Route::get('/{order}', [OrderController::class, 'show']);
+        Route::get('/{order}/positions', [OrderController::class, 'positions']);
+        Route::post('/', [OrderController::class, 'store']);
+    });
 
     Route::middleware('employee')->prefix('employee')->group(function () {
         Route::post('/products', [ProductController::class, 'store']);

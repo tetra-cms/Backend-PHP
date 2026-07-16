@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Requests\CreateOrderRequest;
-use App\Http\Requests\UpdateOrderRequest;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Order\CreateOrderRequest;
+use App\Http\Requests\Order\UpdateOrderRequest;
 use App\Http\Resources\OrderResource;
+use App\Http\Resources\OrderPositionResource;
 use App\Models\Order;
 use App\Services\OrderService;
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\Response;
-use App\Http\Controllers\Controller;
 
 class OrderController extends Controller
 {
@@ -23,36 +23,68 @@ class OrderController extends Controller
      */
     public function index(Request $request)
     {
-        $result = $this->service->all($request);
+        $orders = $this->service->all(
+            $request->user(),
+            $request->only([
+                'search',
+                'status',
+                'client_id',
+                'perPage',
+            ])
+        );
 
-        if ($result instanceof \Illuminate\Http\JsonResponse) {
-            $data = $result->getData(true);
-
+        if ($orders instanceof \Illuminate\Contracts\Pagination\LengthAwarePaginator) {
             return response()->json([
-                'data' => OrderResource::collection(
-                    collect($data['data'])
-                ),
-                'pagination' => $data['pagination'],
+                'data' => OrderResource::collection($orders->items()),
+                'pagination' => [
+                    'page' => $orders->currentPage(),
+                    'perPage' => $orders->perPage(),
+                    'total' => $orders->total(),
+                    'lastPage' => $orders->lastPage(),
+                ],
             ]);
         }
 
-        return OrderResource::collection($result);
+        return OrderResource::collection($orders);
     }
 
     /**
      * Получить заказ.
      */
-    public function show(int $id): OrderResource
+    public function show(Request $request, Order $order): OrderResource
     {
-        $order = $this->service->getById($id);
+        return new OrderResource(
+            $this->service->find(
+                $request->user(),
+                $order
+            )
+        );
+    }
 
-        abort_if(
-            !$order,
-            Response::HTTP_NOT_FOUND,
-            'Order not found'
+    /**
+     * Получить позиции заказа.
+     */
+    public function positions(
+        Request $request,
+        Order $order
+    ) {
+        $positions = $this->service->positions(
+            $request->user(),
+            $order,
+            (int) $request->input('perPage', 15)
         );
 
-        return new OrderResource($order);
+        return response()->json([
+            'data' => OrderPositionResource::collection(
+                $positions->items()
+            ),
+            'pagination' => [
+                'page' => $positions->currentPage(),
+                'perPage' => $positions->perPage(),
+                'total' => $positions->total(),
+                'lastPage' => $positions->lastPage(),
+            ],
+        ]);
     }
 
     /**
@@ -62,12 +94,12 @@ class OrderController extends Controller
         CreateOrderRequest $request
     ): OrderResource {
 
-        $order = $this->service->create(
-            $request,
-            auth()->id()
+        return new OrderResource(
+            $this->service->create(
+                $request->user(),
+                $request->validated()
+            )
         );
-
-        return new OrderResource($order);
     }
 
     /**
@@ -75,62 +107,28 @@ class OrderController extends Controller
      */
     public function update(
         UpdateOrderRequest $request,
-        int $id
+        Order $order
     ): OrderResource {
 
-        $order = Order::find($id);
-
-        abort_if(
-            !$order,
-            Response::HTTP_NOT_FOUND,
-            'Order not found'
+        return new OrderResource(
+            $this->service->update(
+                $request->user(),
+                $order,
+                $request->validated()
+            )
         );
-
-        $order = $this->service->update(
-            $order,
-            $request
-        );
-
-        return new OrderResource($order);
     }
 
     /**
      * Удалить заказ.
      */
-    public function destroy(int $id)
+    public function destroy(Order $order)
     {
-        $order = Order::find($id);
-
-        abort_if(
-            !$order,
-            Response::HTTP_NOT_FOUND,
-            'Order not found'
+        $this->service->delete(
+            request()->user(),
+            $order
         );
-
-        $this->service->delete($order);
 
         return response()->noContent();
-    }
-
-    public function my(Request $request)
-    {
-        $result = $this->service->my(
-            $request,
-            $request->user()->id
-        );
-
-        if ($result instanceof \Illuminate\Http\JsonResponse) {
-
-            $data = $result->getData(true);
-
-            return response()->json([
-                'data' => OrderResource::collection(
-                    collect($data['data'])
-                ),
-                'pagination' => $data['pagination'],
-            ]);
-        }
-
-        return OrderResource::collection($result);
     }
 }

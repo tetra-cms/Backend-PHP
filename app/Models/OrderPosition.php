@@ -46,6 +46,6 @@ class OrderPosition extends Model
      */
     public function getTotalPriceAttribute(): int
     {
-        return $this->price * $this->quantity;
+        return $this->price * $this->quantity * $this->product->supply_quantum;
     }
 }
