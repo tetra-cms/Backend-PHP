@@ -39,7 +39,7 @@ Route::middleware('jwt')->group(function () {
 
     Route::prefix('orders')->group(function () {
         Route::get('/', [OrderController::class, 'index']);
-        Route::get('/my', [OrderController::class,'my']);
+        Route::get('/my', [OrderController::class, 'index']);
         Route::get('/{order}', [OrderController::class, 'show']);
         Route::get('/{order}/positions', [OrderController::class, 'positions']);
         Route::post('/', [OrderController::class, 'store']);
