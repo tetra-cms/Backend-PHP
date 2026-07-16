@@ -83,13 +83,13 @@ class CreateOrderRequest extends FormRequest
 
         if (!$this->has('payment_type')) {
             $this->merge([
-                'payment_type' => PaymentTypes::cash->value,
+                'payment_type' => PaymentTypes::Cash->value,
             ]);
         }
 
         if (!$this->has('delivery_type')) {
             $this->merge([
-                'delivery_type' => DeliveryTypes::pickup->value,
+                'delivery_type' => DeliveryTypes::Pickup->value,
             ]);
         }
     }

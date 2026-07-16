@@ -166,8 +166,8 @@ class OrderService
             $order->update([
                 'client_id' => $data['client_id'],
                 'comment' => $data['comment'] ?? null,
-                'payment_type' => $data['payment_type'],
-                'delivery_type' => $data['delivery_type'],
+                'payment_type' => $data['payment_type'] ?? null,
+                'delivery_type' => $data['delivery_type'] ?? null,
                 'status' => $data['status'],
             ]);
 

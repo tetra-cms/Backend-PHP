@@ -4,6 +4,6 @@ namespace App\Enums;
 
 enum DeliveryTypes: string
 {
-    case pickup = 'PICKUP';
-    case delivery = 'DELIVERY';
+    case Pickup = 'PICKUP';
+    case Delivery = 'DELIVERY';
 }

@@ -41,13 +41,13 @@ class UpdateOrderRequest extends FormRequest
             ],
 
             'payment_type' => [
-                'nullable',
-                new Enum(DeliveryTypes::class),
+                'required',
+                new Enum(PaymentTypes::class),
             ],
 
             'delivery_type' => [
-                'nullable',
-                new Enum(PaymentTypes::class),
+                'required',
+                new Enum(DeliveryTypes::class),
             ],
 
             'positions' => [
