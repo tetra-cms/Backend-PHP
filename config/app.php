@@ -15,9 +15,15 @@ return [
 
     'name' => env('APP_NAME', 'Laravel'),
 
-    'title' => env('SITE_TITLE', 'Tetra-CMS'),
-    'description' => env('SITE_DESCRIPTION', 'A simple e-commerce system'),
-    'keywords' => env('SITE_KEYWORDS', 'e-commerce,shop'),
+    'title' => env('SITE_TITLE'),
+    'description' => env('SITE_DESCRIPTION'),
+    'keywords' => env('SITE_KEYWORDS'),
+    'email' => env('SITE_EMAIL'),
+    'phone' => env('SITE_PHONE'),
+    'country' => env('SITE_COUNTRY', 'RU'),
+    'region' => env('SITE_REGION'),
+    'city' => env('SITE_CITY'),
+    'address' => env('SITE_ADDRESS'),
 
     /*
     |--------------------------------------------------------------------------

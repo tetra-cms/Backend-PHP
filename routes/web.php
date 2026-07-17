@@ -59,29 +59,85 @@ Route::get('/{any?}', function (?string $any = null) {
 
     $title = config('app.title');
     $description = config('app.description');
-    $image = "/favicon.ico";
+    $keywords = config('app.keywords');
 
-    $seo = "
-        <title>" . e($title) . "</title>
+    $image = url('/favicon.ico');
+    $url = url($any ?? '/');
 
-        <meta name=\"description\" content=\"" . e($description) . "\">
+    $organization = [
+        "@context" => "https://schema.org",
+        "@type" => "Organization",
+        "name" => config('app.title'),
+        "url" => config('app.url'),
+        "logo" => url('/favicon.ico'),
+        "email" => config('app.email'),
+        "telephone" => config('app.phone'),
 
-        <meta property=\"og:title\" content=\"" . e($title) . "\">
+        "address" => [
+            "@type" => "PostalAddress",
+            "addressCountry" => config('app.country'),
+            "addressRegion" => config('app.region'),
+            "addressLocality" => config('app.city'),
+            "streetAddress" => config('app.address'),
+        ],
 
-        <meta property=\"og:site_name\" content=\"" . e($title) . "\">
+        "contactPoint" => [[
+            "@type" => "ContactPoint",
+            "telephone" => config('app.phone'),
+            "email" => config('app.email'),
+            "contactType" => "customer support",
+            "availableLanguage" => ["Russian"]
+        ]]
+    ];
 
-        <meta property=\"og:description\" content=\"" . e($description) . "\">
+    $seo = '
+<title>'.e($title).'</title>
 
-        <meta property=\"og:type\" content=\"website\">
-    ";
+<meta name="description" content="'.e($description).'">
 
-    if ($image) {
-        $seo .= "\n<meta property=\"og:image\" content=\"" . e($image) . "\">";
-    }
+<meta name="keywords" content="'.e($keywords).'">
+
+<meta name="robots" content="index, follow">
+
+<meta name="author" content="'.e(config('app.title')).'">
+
+<meta name="theme-color" content="#ffffff">
+
+<link rel="canonical" href="'.e($url).'">
+
+<meta property="og:title" content="'.e($title).'">
+
+<meta property="og:site_name" content="'.e(config('app.title')).'">
+
+<meta property="og:description" content="'.e($description).'">
+
+<meta property="og:type" content="website">
+
+<meta property="og:url" content="'.e($url).'">
+
+<meta property="og:image" content="'.e($image).'">
+
+<meta name="twitter:card" content="summary_large_image">
+
+<meta name="twitter:title" content="'.e($title).'">
+
+<meta name="twitter:description" content="'.e($description).'">
+
+<meta name="twitter:image" content="'.e($image).'">
+
+<script type="application/ld+json">
+'.json_encode(
+        $organization,
+        JSON_UNESCAPED_UNICODE |
+        JSON_UNESCAPED_SLASHES |
+        JSON_PRETTY_PRINT
+    ).'
+</script>
+';
 
     $html = preg_replace(
         '/<head>/i',
-        "<head>\n{$seo}",
+        "<head>\n".$seo,
         $html,
         1
     );
