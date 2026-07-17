@@ -27,7 +27,7 @@ Route::get('/categories/{category}', [CategoryController::class, 'show']);
 Route::prefix('content')->group(function () {
     Route::get('/', [ContentController::class, 'index']);
     Route::get('/id/{id}', [ContentController::class, 'getById']);
-    Route::get('/{route}', [ContentController::class, 'show']);
+    Route::get('/{route}', [ContentController::class, 'show'])->where('route', '.*');
     Route::get('/route/get', [ContentController::class, 'route']);
 });
 
