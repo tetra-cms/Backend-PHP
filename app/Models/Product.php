@@ -22,7 +22,7 @@ class Product extends Model
     protected function casts(): array
     {
         return [
-            'price' => 'integer',
+            'price' => 'decimal:2',
             'stock' => 'integer',
             'supply_quantum' => 'integer',
         ];

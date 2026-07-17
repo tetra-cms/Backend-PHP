@@ -20,7 +20,7 @@ class RefreshRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'refresh_token' => [
+            'refreshToken' => [
                 'required',
                 'string',
             ],
@@ -33,7 +33,7 @@ class RefreshRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'refresh_token' => 'refresh token',
+            'refreshToken' => 'refresh token',
         ];
     }
 

@@ -26,7 +26,9 @@ class ProductImageController extends Controller
             }
         }
 
-        abort(Response::HTTP_NOT_FOUND);
+        return response()->file(
+            Storage::disk('public')->path("products/no_product.png")
+        );
     }
 
     /**

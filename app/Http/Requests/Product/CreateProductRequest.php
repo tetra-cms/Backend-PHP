@@ -40,7 +40,7 @@ class CreateProductRequest extends FormRequest
 
             'price' => [
                 'required',
-                'integer',
+                'numeric',
                 'min:0',
             ],
 

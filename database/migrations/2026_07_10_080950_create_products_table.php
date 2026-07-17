@@ -19,7 +19,7 @@ return new class extends Migration
 
             $table->text('description');
 
-            $table->integer('price');
+            $table->unsignedDecimal('price', 10, 2);
 
             $table->integer('stock')
                 ->default(-1);

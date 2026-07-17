@@ -40,7 +40,7 @@ class UpdateProductRequest extends FormRequest
 
             'price' => [
                 'required',
-                'integer',
+                'numeric',
                 'min:0',
             ],
 
