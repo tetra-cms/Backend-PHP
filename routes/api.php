@@ -2,7 +2,7 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\OrderController;
-use App\Http\Controllers\Api\OrderPositionController;
+use App\Http\Controllers\Api\ProductImageController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\ClientController;
 use App\Http\Controllers\Api\ProductController;
@@ -19,6 +19,8 @@ Route::prefix('auth')->group(function () {
 
 Route::get('/products', [ProductController::class, 'index']);
 Route::get('/products/{product}', [ProductController::class, 'show']);
+Route::get('/products/image/{product}', [ProductImageController::class, 'show']);
+
 Route::get('/categories', [CategoryController::class, 'index']);
 Route::get('/categories/{category}', [CategoryController::class, 'show']);
 
@@ -64,6 +66,8 @@ Route::middleware('jwt')->group(function () {
         Route::delete('/categories/{category}', [CategoryController::class, 'destroy']);
 
         Route::delete('/products/{product}', [ProductController::class, 'destroy']);
+
+        Route::post('/products/image/{product}', [ProductImageController::class, 'upload']);
 
         Route::get('/mail/configuration', [MailConfigurationController::class, 'show']);
         Route::put('/mail/configuration', [MailConfigurationController::class, 'update']);
