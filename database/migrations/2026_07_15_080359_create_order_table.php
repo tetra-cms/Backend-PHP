@@ -46,7 +46,7 @@ return new class extends Migration
                     'value'
                 )
             )->default(
-                DeliveryTypes::pickup->value
+                DeliveryTypes::Pickup->value
             );
 
             $table->enum(
@@ -56,7 +56,7 @@ return new class extends Migration
                     'value'
                 )
             )->default(
-                PaymentTypes::cash->value
+                PaymentTypes::Cash->value
             );
 
             $table->timestamps();
