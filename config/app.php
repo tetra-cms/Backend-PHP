@@ -15,6 +15,10 @@ return [
 
     'name' => env('APP_NAME', 'Laravel'),
 
+    'title' => env('SITE_TITLE', 'Tetra-CMS'),
+    'description' => env('SITE_DESCRIPTION', 'A simple e-commerce system'),
+    'keywords' => env('SITE_KEYWORDS', 'e-commerce,shop'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Environment

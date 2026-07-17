@@ -46,6 +46,7 @@ Route::get('/admin/{any?}', function (?string $any = null) {
 })->where('any', '.*');
 
 Route::get('/{any?}', function (?string $any = null) {
+
     if ($any) {
         $file = public_path('app/' . $any);
 
@@ -54,5 +55,36 @@ Route::get('/{any?}', function (?string $any = null) {
         }
     }
 
-    return response()->file(public_path('app/index.html'));
+    $html = File::get(public_path('app/index.html'));
+
+    $title = config('app.name');
+    $description = config('app.description');
+    $image = "/favicon.ico";
+
+    $seo = "
+        <title>" . e($title) . "</title>
+
+        <meta name=\"description\" content=\"" . e($description) . "\">
+
+        <meta property=\"og:title\" content=\"" . e($title) . "\">
+
+        <meta property=\"og:description\" content=\"" . e($description) . "\">
+
+        <meta property=\"og:type\" content=\"website\">
+    ";
+
+    if ($image) {
+        $seo .= "\n<meta property=\"og:image\" content=\"" . e($image) . "\">";
+    }
+
+    $html = preg_replace(
+        '/<head>/i',
+        "<head>\n{$seo}",
+        $html,
+        1
+    );
+
+    return response($html)
+        ->header('Content-Type', 'text/html');
+
 })->where('any', '^(?!api|admin).*$');
