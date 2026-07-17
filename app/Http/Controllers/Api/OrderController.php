@@ -10,6 +10,12 @@ use App\Http\Resources\OrderPositionResource;
 use App\Models\Order;
 use App\Services\OrderService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\OrderCreatedMail;
+use App\Mail\OrderStatusUpdatedMail;
+
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class OrderController extends Controller
 {
@@ -90,33 +96,65 @@ class OrderController extends Controller
     /**
      * Создать заказ.
      */
-    public function store(
-        CreateOrderRequest $request
-    ): OrderResource {
-
-        return new OrderResource(
-            $this->service->create(
-                $request->user(),
-                $request->validated()
-            )
+    public function store(CreateOrderRequest $request): OrderResource
+    {
+        $order = $this->service->create(
+            $request->user(),
+            $request->validated()
         );
+
+        if (config('mail.mailers.smtp.username')) {
+            $order->load([
+                'user',
+                'client',
+                'positions.product',
+            ]);
+
+            try {
+                Mail::to($order->user->email)
+                    ->send(new OrderCreatedMail($order));
+            } catch (Throwable $e) {
+                Log::warning('SMTP недоступен', [
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        return new OrderResource($order);
     }
 
     /**
      * Обновить заказ.
      */
-    public function update(
+   public function update(
         UpdateOrderRequest $request,
         Order $order
     ): OrderResource {
 
-        return new OrderResource(
-            $this->service->update(
-                $request->user(),
-                $order,
-                $request->validated()
-            )
+        $order = $this->service->update(
+            $request->user(),
+            $order,
+            $request->validated()
         );
+
+        if (config('mail.mailers.smtp.username')) {
+            $order->load([
+                'user',
+                'client',
+                'positions.product',
+            ]);
+
+            try {
+                Mail::to($order->user->email)
+                    ->send(new OrderStatusUpdatedMail($order));
+            } catch (Throwable $e) {
+                Log::warning('SMTP недоступен', [
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        return new OrderResource($order);
     }
 
     /**
