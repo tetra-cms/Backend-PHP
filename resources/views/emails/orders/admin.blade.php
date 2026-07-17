@@ -53,15 +53,40 @@
 
 <body>
     <div class="card">
-        <h2>Спасибо за заказ!</h2>
+        <h2>Поступил новый заказ</h2>
 
         <p>
-            Заказ № <b>{{ $order->id }}</b>
+            Новый заказ № <b>{{ $order->id }}</b>
         </p>
 
         <p>
-            Статус:
-            <b>{{ __('order.statuses.' . $order->status->value) }}</b>
+            ФИО:
+            <b>{{ $order->client->fcs }}</b>
+        </p>
+
+        <p>
+            Адрес:
+            <b>{{ $order->client->address . ' (' . $order->client->city . ')' }}</b>
+        </p>
+
+        <p>
+            Телефон:
+            <b>{{ $order->client->phone }}</b>
+        </p>
+
+        <p>
+            Тип оплаты:
+            <b>{{ __('order.payments.' . $order->payment_type->value) }}</b>
+        </p>
+
+        <p>
+            Тип доставки:
+            <b>{{ __('order.delivery.' . $order->delivery_type->value) }}</b>
+        </p>
+
+        <p>
+            Комментарий:
+            <b>{{ $order->client->comment }}</b>
         </p>
 
         <table>

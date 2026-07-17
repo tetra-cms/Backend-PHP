@@ -7,12 +7,16 @@ use App\Http\Requests\Order\CreateOrderRequest;
 use App\Http\Requests\Order\UpdateOrderRequest;
 use App\Http\Resources\OrderResource;
 use App\Http\Resources\OrderPositionResource;
-use App\Models\Order;
 use App\Services\OrderService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\OrderCreatedMail;
 use App\Mail\OrderStatusUpdatedMail;
+use App\Mail\OrderAdminMail;
+
+use App\Models\Order;
+use App\Models\User;
+use App\Enums\Role;
 
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -103,30 +107,44 @@ class OrderController extends Controller
             $request->validated()
         );
 
-        if (config('mail.mailers.smtp.username')) {
-            $order->load([
-                'user',
-                'client',
-                'positions.product',
-            ]);
+        $order->load([
+            'user',
+            'client',
+            'positions.product',
+        ]);
 
-            try {
-                Mail::to($order->user->email)
-                    ->send(new OrderCreatedMail($order));
-            } catch (Throwable $e) {
-                Log::warning('SMTP недоступен', [
-                    'error' => $e->getMessage(),
-                ]);
-            }
+        $resource = new OrderResource($order);
+
+        if (config('mail.mailers.smtp.username')) {
+            defer(function () use ($order) {
+                try {
+                    Mail::to($order->user->email)
+                        ->queue(new OrderCreatedMail($order));
+
+                    $admins = User::query()
+                        ->where('role', Role::ADMIN)
+                        ->pluck('email')
+                        ->all();
+
+                    if (!empty($admins)) {
+                        Mail::to($admins)
+                            ->queue(new OrderAdminMail($order));
+                    }
+                } catch (Throwable $e) {
+                    Log::warning('SMTP недоступен', [
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            });
         }
 
-        return new OrderResource($order);
+        return $resource;
     }
 
     /**
      * Обновить заказ.
      */
-   public function update(
+    public function update(
         UpdateOrderRequest $request,
         Order $order
     ): OrderResource {
@@ -137,24 +155,28 @@ class OrderController extends Controller
             $request->validated()
         );
 
-        if (config('mail.mailers.smtp.username')) {
-            $order->load([
-                'user',
-                'client',
-                'positions.product',
-            ]);
+        $order->load([
+            'user',
+            'client',
+            'positions.product',
+        ]);
 
-            try {
-                Mail::to($order->user->email)
-                    ->send(new OrderStatusUpdatedMail($order));
-            } catch (Throwable $e) {
-                Log::warning('SMTP недоступен', [
-                    'error' => $e->getMessage(),
-                ]);
-            }
+        $resource = new OrderResource($order);
+
+        if (config('mail.mailers.smtp.username')) {
+            defer(function () use ($order) {
+                try {
+                    Mail::to($order->user->email)
+                        ->queue(new OrderStatusUpdatedMail($order));
+                } catch (Throwable $e) {
+                    Log::warning('SMTP недоступен', [
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            });
         }
 
-        return new OrderResource($order);
+        return $resource;
     }
 
     /**

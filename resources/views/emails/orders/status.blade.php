@@ -41,7 +41,7 @@
         </p>
 
         <div class="status">
-            {{ $order->status }}
+            {{ __('order.statuses.' . $order->status->value) }}
         </div>
     </div>
 </body>
