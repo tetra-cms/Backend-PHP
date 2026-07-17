@@ -57,7 +57,7 @@ Route::get('/{any?}', function (?string $any = null) {
 
     $html = File::get(public_path('app/index.html'));
 
-    $title = config('app.name');
+    $title = config('app.title');
     $description = config('app.description');
     $image = "/favicon.ico";
 
@@ -67,6 +67,8 @@ Route::get('/{any?}', function (?string $any = null) {
         <meta name=\"description\" content=\"" . e($description) . "\">
 
         <meta property=\"og:title\" content=\"" . e($title) . "\">
+
+        <meta property=\"og:site_name\" content=\"" . e($title) . "\">
 
         <meta property=\"og:description\" content=\"" . e($description) . "\">
 
