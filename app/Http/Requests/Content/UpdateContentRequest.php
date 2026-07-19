@@ -19,9 +19,6 @@ class UpdateContentRequest extends FormRequest
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('contents')->ignore(
-                    $this->route('content')
-                ),
             ],
 
             'content' => [
