@@ -26,6 +26,11 @@ return [
     'city' => env('SITE_CITY'),
     'address' => env('SITE_ADDRESS'),
 
+    'image' => env('SITE_IMAGE'),
+    'width' => env('SITE_IMAGE_WIDTH'),
+    'height' => env('SITE_IMAGE_HEIGHT'),
+    'alt' => env('SITE_IMAGE_ALT'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Environment

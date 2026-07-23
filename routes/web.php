@@ -62,7 +62,11 @@ Route::get('/{any?}', function (?string $any = null) {
     $description = config('app.description');
     $keywords = config('app.keywords');
 
-    $image = url('/favicon.ico');
+    $image_width = config('app.width');
+    $image_height = config('app.height');
+    $image_alt = config('app.alt');
+
+    $image = config('app.image');
     $url = url($any ?? '/');
 
     $organization = [
@@ -119,6 +123,12 @@ Route::get('/{any?}', function (?string $any = null) {
 <meta property="og:url" content="'.e($url).'">
 
 <meta property="og:image" content="'.e($image).'">
+
+<meta property="og:image:width" content="'.e($image_width).'">
+
+<meta property="og:image:height" content="'.e($image_height).'">
+
+<meta property="og:image:alt" content="'.e($image_alt).'">
 
 <meta name="twitter:card" content="summary_large_image">
 
