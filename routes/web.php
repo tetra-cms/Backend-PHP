@@ -58,6 +58,7 @@ Route::get('/{any?}', function (?string $any = null) {
     $html = File::get(public_path('app/index.html'));
 
     $title = config('app.title');
+    $site_name = config('app.site_name');
     $description = config('app.description');
     $keywords = config('app.keywords');
 
@@ -107,11 +108,13 @@ Route::get('/{any?}', function (?string $any = null) {
 
 <meta property="og:title" content="'.e($title).'">
 
-<meta property="og:site_name" content="'.e(config('app.title')).'">
+<meta property="og:site_name" content="'.e($site_name).'">
 
 <meta property="og:description" content="'.e($description).'">
 
 <meta property="og:type" content="website">
+
+<link rel="icon" href="/favicon.ico" type="image/x-icon">
 
 <meta property="og:url" content="'.e($url).'">
 

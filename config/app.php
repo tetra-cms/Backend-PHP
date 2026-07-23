@@ -16,6 +16,7 @@ return [
     'name' => env('APP_NAME', 'Laravel'),
 
     'title' => env('SITE_TITLE'),
+    'site_name' => env('SITE_NAME'),
     'description' => env('SITE_DESCRIPTION'),
     'keywords' => env('SITE_KEYWORDS'),
     'email' => env('SITE_EMAIL'),
