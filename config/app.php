@@ -31,6 +31,10 @@ return [
     'height' => env('SITE_IMAGE_HEIGHT'),
     'alt' => env('SITE_IMAGE_ALT'),
 
+    'inn' => env('ORG_IN', '00000000000'),
+    'ogrn' => env('ORG_ORGN', '0000000000'),
+
+
     /*
     |--------------------------------------------------------------------------
     | Application Environment

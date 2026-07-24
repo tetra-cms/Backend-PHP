@@ -78,12 +78,27 @@ Route::get('/{any?}', function (?string $any = null) {
         "email" => config('app.email'),
         "telephone" => config('app.phone'),
 
+        "taxID" => config('app.inn'),
+
         "address" => [
             "@type" => "PostalAddress",
             "addressCountry" => config('app.country'),
             "addressRegion" => config('app.region'),
             "addressLocality" => config('app.city'),
             "streetAddress" => config('app.address'),
+        ],
+
+        "identifier" => [
+            [
+                "@type" => "PropertyValue",
+                "propertyID" => "ИНН",
+                "value" => config('app.inn')
+            ],
+            [
+                "@type" => "PropertyValue",
+                "propertyID" => "ОГРН",
+                "value" => config('app.ogrn')
+            ]
         ],
 
         "contactPoint" => [[
